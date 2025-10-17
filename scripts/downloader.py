@@ -168,6 +168,9 @@ class APKMirrorParser:
             return unique_versions[:limit]
             
         except Exception as e:
+            # Re-raise rate limiting errors so they can be handled with retry logic
+            if "429" in str(e) or "Too Many Requests" in str(e):
+                raise e
             print(f"  ✗ Error getting version pages: {e}")
             return []
     
@@ -709,12 +712,18 @@ class APKMirrorParser:
                     print(f"      📋 Response URL: {response2.url}")
                 
             except Exception as e:
+                # Re-raise rate limiting errors for the second request too
+                if "429" in str(e) or "Too Many Requests" in str(e):
+                    raise e
                 if debug:
                     print(f"      ✗ Error following download URL: {e}")
             
             return None
             
         except Exception as e:
+            # Re-raise rate limiting errors so they can be handled with retry logic
+            if "429" in str(e) or "Too Many Requests" in str(e):
+                raise e
             print(f"      ✗ Error getting direct download link: {e}")
             if debug:
                 import traceback
@@ -830,19 +839,40 @@ def download_app_apks(app, settings):
         # App supports any version - discover latest available versions
         print("  🔍 App supports any version - discovering latest available versions...")
         
-        # Special handling for apps that commonly fail in GitHub Actions
-        if app['package_name'] in ['com.twitter.android', 'com.reddit.frontpage'] and parser.is_github_actions:
-            print(f"  🔧 Applying special GitHub Actions handling for {app['name']}...")
-            # Add extra delay for these problematic apps
-            time.sleep(5)
-            # Try with limited version search first
-            version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
-            if not version_pages:
-                print("  🔄 Retrying with different approach...")
-                time.sleep(10)
-                version_pages = parser.get_all_version_pages(app['download_url'], limit=3)
-        else:
-            version_pages = parser.get_all_version_pages(app['download_url'], limit=10)
+        # Get version pages with retry logic for rate limiting
+        version_pages = None
+        for page_attempt in range(max_retries):
+            try:
+                # Special handling for apps that commonly fail in GitHub Actions
+                if app['package_name'] in ['com.twitter.android', 'com.reddit.frontpage'] and parser.is_github_actions:
+                    print(f"  🔧 Applying special GitHub Actions handling for {app['name']}...")
+                    # Add extra delay for these problematic apps
+                    time.sleep(5)
+                    # Try with limited version search first
+                    version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
+                    if not version_pages:
+                        print("  🔄 Retrying with different approach...")
+                        time.sleep(10)
+                        version_pages = parser.get_all_version_pages(app['download_url'], limit=3)
+                else:
+                    version_pages = parser.get_all_version_pages(app['download_url'], limit=10)
+                
+                if version_pages:
+                    break
+                    
+            except Exception as e:
+                # Check if it's a rate limiting error
+                if "429" in str(e) or "Too Many Requests" in str(e):
+                    if page_attempt < max_retries - 1:
+                        print(f"  🔄 Rate limited getting version pages, retrying in {retry_delay}s... (attempt {page_attempt + 1}/{max_retries})")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        print(f"  ✗ Rate limit exceeded after {max_retries} attempts getting version pages")
+                        break
+                else:
+                    print(f"  ✗ Error getting version pages: {e}")
+                    break
         
         # Debug output for troubleshooting
         if not version_pages and app['name'] == 'Google Photos':
@@ -904,7 +934,27 @@ def download_app_apks(app, settings):
     else:
         # Fallback to discovering versions from main page (no patch analysis)
         print("  🔍 No ReVanced patch analysis - discovering from main page...")
-        version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
+        
+        # Get version pages with retry logic for rate limiting
+        version_pages = None
+        for page_attempt in range(max_retries):
+            try:
+                version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
+                if version_pages:
+                    break
+            except Exception as e:
+                # Check if it's a rate limiting error
+                if "429" in str(e) or "Too Many Requests" in str(e):
+                    if page_attempt < max_retries - 1:
+                        print(f"  🔄 Rate limited getting version pages, retrying in {retry_delay}s... (attempt {page_attempt + 1}/{max_retries})")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        print(f"  ✗ Rate limit exceeded after {max_retries} attempts getting version pages")
+                        break
+                else:
+                    print(f"  ✗ Error getting version pages: {e}")
+                    break
         
         if not version_pages:
             print(f"  ✗ Could not find any version pages for {app['name']}")
@@ -956,11 +1006,19 @@ def download_app_apks(app, settings):
                 if retry < max_variant_retries - 1:
                     configured_retry_delay = settings.get('retry_delay', 5)
                     variant_retry_delay = configured_retry_delay if parser.is_github_actions else 2
-                    print(f"    ❌ Variant detection failed: {e}")
-                    print(f"    🔄 Retrying in {variant_retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    
+                    # Check if it's a rate limiting error
+                    if "429" in str(e) or "Too Many Requests" in str(e):
+                        print(f"    🔄 Rate limited, retrying in {variant_retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    else:
+                        print(f"    ❌ Variant detection failed: {e}")
+                        print(f"    🔄 Retrying in {variant_retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
                     time.sleep(variant_retry_delay)
                 else:
-                    print(f"    ❌ Variant detection failed after {max_variant_retries} attempts: {e}")
+                    if "429" in str(e) or "Too Many Requests" in str(e):
+                        print(f"    ✗ Rate limit exceeded after {max_variant_retries} attempts")
+                    else:
+                        print(f"    ❌ Variant detection failed after {max_variant_retries} attempts: {e}")
         
         if variants:
             print(f"    📦 Found {len(variants)} real variants in v{version_str}")
@@ -982,8 +1040,26 @@ def download_app_apks(app, settings):
                     
                     print(f"    ⬇️  Downloading {filename}...")
                     
-                    # Get download link
-                    direct_link = parser.get_direct_download_link(variant['url'], debug=False)
+                    # Get download link with retry logic
+                    direct_link = None
+                    for link_attempt in range(max_retries):
+                        try:
+                            direct_link = parser.get_direct_download_link(variant['url'], debug=False)
+                            if direct_link:
+                                break
+                        except Exception as e:
+                            # Check if it's a rate limiting error
+                            if "429" in str(e) or "Too Many Requests" in str(e):
+                                if link_attempt < max_retries - 1:
+                                    print(f"    🔄 Rate limited, retrying in {retry_delay}s... (attempt {link_attempt + 1}/{max_retries})")
+                                    time.sleep(retry_delay)
+                                    continue
+                                else:
+                                    print(f"    ✗ Rate limit exceeded after {max_retries} attempts")
+                            else:
+                                print(f"    ✗ Error getting download link: {e}")
+                            break
+                    
                     if not direct_link:
                         print(f"    ✗ Could not get download link for {arch}")
                         continue
