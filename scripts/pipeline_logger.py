@@ -151,6 +151,41 @@ def log_release_created(release_info: Dict, patch_results: Dict):
     print(f"✓ Release logged: {release_data['tag']} ({release_data['total_size_mb']} MB)")
     return release_data
 
+def log_pipeline_skip(trigger: str, reason: str, pending_info: Optional[Dict] = None):
+    """Log when pipeline is skipped"""
+    ensure_logs_dir()
+    
+    # Get pipeline metadata
+    pipeline_data = {
+        "timestamp": datetime.now().isoformat(),
+        "run_id": os.environ.get('GITHUB_RUN_ID', 'local'),
+        "run_number": os.environ.get('GITHUB_RUN_NUMBER', '0'),
+        "workflow": os.environ.get('GITHUB_WORKFLOW', 'Manual'),
+        "trigger": trigger,  # 'schedule', 'manual', 'config_change'
+        "commit_sha": os.environ.get('GITHUB_SHA', 'unknown'),
+        "actor": os.environ.get('GITHUB_ACTOR', 'local'),
+        "status": "skipped",
+        "reason": reason,
+        "results": {
+            "pending_info": pending_info
+        }
+    }
+    
+    # Load existing history and append
+    history = load_pipeline_history()
+    history.append(pipeline_data)
+    
+    # Keep only last 50 runs to prevent file getting too large
+    if len(history) > 50:
+        history = history[-50:]
+    
+    # Save updated history
+    with open(PIPELINE_LOG, 'w') as f:
+        json.dump(history, f, indent=2)
+    
+    print(f"✓ Pipeline skip logged: {pipeline_data['timestamp']}")
+    return pipeline_data
+
 def get_pipeline_stats():
     """Get pipeline statistics"""
     history = load_pipeline_history()

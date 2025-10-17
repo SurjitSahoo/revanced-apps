@@ -46,13 +46,28 @@ jobs:
           python scripts/patch_analyzer.py
           # Analyzes ReVanced patches to determine latest supported app versions
 
+      - name: Check if Release is Needed
+        id: release_check
+        run: |
+          python scripts/release_checker.py
+          # Checks if there are new versions that need to be released
+
+      - name: Log No Release Needed
+        if: steps.release_check.outputs.needs_release != 'true'
+        run: |
+          echo "✅ No new versions detected - skipping release pipeline"
+          echo "All currently supported app versions have already been released."
+          python scripts/pipeline_orchestrator.py log --skip-release
+
       - name: Download APKs
+        if: steps.release_check.outputs.needs_release == 'true'
         run: |
           python scripts/downloader.py
           # Exit codes: 0=success, 1=critical error (fail pipeline), 2=all failed (continue to issues)
 
       - name: Analyze Download Results
         id: download_analysis
+        if: steps.release_check.outputs.needs_release == 'true'
         run: |
           if [ -f "downloads/download_results.json" ]; then
             echo "download_results_exist=true" >> $GITHUB_OUTPUT
@@ -68,7 +83,7 @@ jobs:
 
       - name: Patch APKs
         id: patch
-        if: steps.download_analysis.outputs.download_successful > 0
+        if: steps.release_check.outputs.needs_release == 'true' && steps.download_analysis.outputs.download_successful > 0
         run: |
           python scripts/patcher.py
           # Exit codes: 0=success, 1=critical error (fail pipeline), 2=all failed (continue to issues)
@@ -76,7 +91,7 @@ jobs:
 
       - name: Analyze Patch Results
         id: patch_analysis
-        if: always() && steps.download_analysis.outputs.download_successful > 0
+        if: always() && steps.release_check.outputs.needs_release == 'true' && steps.download_analysis.outputs.download_successful > 0
         run: |
           if [ -f "output/patch_results.json" ]; then
             echo "patch_results_exist=true" >> $GITHUB_OUTPUT
@@ -91,14 +106,14 @@ jobs:
           fi
 
       - name: Create GitHub Release
-        if: steps.patch_analysis.outputs.success_count > 0
+        if: steps.release_check.outputs.needs_release == 'true' && steps.patch_analysis.outputs.success_count > 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           python scripts/release_manager.py
 
       - name: Create Issues for Download Failures
-        if: always() && steps.download_analysis.outputs.download_failed > 0
+        if: always() && steps.release_check.outputs.needs_release == 'true' && steps.download_analysis.outputs.download_failed > 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -106,7 +121,7 @@ jobs:
           python scripts/issue_manager.py --type download
 
       - name: Create Issues for Patch Failures
-        if: always() && steps.patch_analysis.outputs.failure_count > 0
+        if: always() && steps.release_check.outputs.needs_release == 'true' && steps.patch_analysis.outputs.failure_count > 0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
