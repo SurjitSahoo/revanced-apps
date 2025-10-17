@@ -5,6 +5,5 @@ revanced
 __pycache__/
 output/
 
-# Keep logs but exclude large temporary files
-logs/*.log
-logs/temp_*
+# Logs are now maintained in separate release-logs branch
+logs/
