@@ -13,6 +13,57 @@ from pipeline_logger import log_release_created
 
 OUTPUT_DIR = Path("output")
 
+def is_identical_to_previous_release(repo, current_successful):
+    """
+    Check if the current successful patches are identical to the previous release.
+    Returns True if identical (should skip release), False if different (should create release).
+    """
+    try:
+        # Get the latest release
+        releases = repo.get_releases()
+        if releases.totalCount == 0:
+            print("🆕 No previous releases found - proceeding with first release")
+            return False
+        
+        latest_release = releases[0]
+        print(f"🔍 Comparing with previous release: {latest_release.tag_name}")
+        
+        # Get assets from previous release
+        previous_assets = {asset.name for asset in latest_release.get_assets()}
+        
+        # Get current successful APK files
+        current_assets = set()
+        for item in current_successful:
+            output_apk_path = item.get('output_apk', '')
+            if output_apk_path:
+                # Extract just the filename from the path
+                apk_filename = os.path.basename(output_apk_path)
+                current_assets.add(apk_filename)
+        
+        # Debug: show what we're comparing
+        print(f"🔍 Previous assets: {sorted(previous_assets)}")
+        print(f"🔍 Current assets: {sorted(current_assets)}")
+        
+        print(f"📋 Previous release had {len(previous_assets)} assets")
+        print(f"📋 Current successful patches: {len(current_assets)} assets")
+        
+        # Compare the sets
+        if current_assets == previous_assets:
+            print("✅ Asset lists are identical")
+            return True
+        else:
+            print("📝 Asset differences detected:")
+            if current_assets - previous_assets:
+                print(f"   New assets: {', '.join(current_assets - previous_assets)}")
+            if previous_assets - current_assets:
+                print(f"   Removed assets: {', '.join(previous_assets - current_assets)}")
+            return False
+            
+    except Exception as e:
+        print(f"⚠️  Error comparing with previous release: {e}")
+        print("🔄 Proceeding with release creation to be safe")
+        return False
+
 def create_release():
     """Create GitHub release with patched APKs"""
     
@@ -44,6 +95,24 @@ def create_release():
     # Connect to GitHub
     g = Github(github_token)
     repo = g.get_repo(repo_name)
+    
+    # Check if this release would be identical to the previous one
+    if is_identical_to_previous_release(repo, results['successful']):
+        print("⏭️  Skipping release - identical to previous release")
+        print("🔍 Same apps with same versions were successfully patched")
+        print("💡 No new content to release")
+        
+        # Log the skip reason
+        from pipeline_logger import log_pipeline_skip
+        trigger = os.environ.get('GITHUB_EVENT_NAME', 'manual')
+        skip_info = {
+            "successful_patches": len(results.get('successful', [])),
+            "failed_patches": len(results.get('failed', [])),
+            "previous_release_match": True
+        }
+        log_pipeline_skip(trigger, "identical_release", skip_info)
+        
+        sys.exit(0)
     
     # Create release tag and title
     date_str = datetime.now().strftime('%Y-%m-%d')
