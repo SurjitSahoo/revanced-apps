@@ -190,7 +190,14 @@ def get_pipeline_stats():
     """Get pipeline statistics"""
     history = load_pipeline_history()
     if not history:
-        return {"total_runs": 0, "success_rate": 0}
+        return {
+            "total_runs": 0, 
+            "successful_runs": 0,
+            "success_rate": 0,
+            "recent_success_rate": 0,
+            "last_run": None,
+            "last_successful_release": None
+        }
     
     total = len(history)
     successful = len([r for r in history if r.get('status') == 'success'])
