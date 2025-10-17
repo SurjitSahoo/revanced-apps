@@ -1,0 +1,63 @@
+{
+  "apps": [
+    {
+      "name": "YouTube",
+      "package_name": "com.google.android.youtube",
+      "download_url": "https://www.apkmirror.com/apk/google-inc/youtube/",
+      "version": "latest",
+      "patches": [],
+      "exclude_patches": [],
+      "enabled": true
+    },
+    {
+      "name": "YouTube Music",
+      "package_name": "com.google.android.apps.youtube.music",
+      "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+      "version": "latest",
+      "patches": [],
+      "exclude_patches": [],
+      "enabled": true
+    },
+    {
+      "name": "Google Photos",
+      "package_name": "com.google.android.apps.photos",
+      "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+      "version": "latest",
+      "patches": [],
+      "exclude_patches": [],
+      "enabled": true
+    },
+    {
+      "name": "Twitter",
+      "package_name": "com.twitter.android",
+      "download_url": "https://www.apkmirror.com/apk/x-corp/twitter/",
+      "version": "latest",
+      "patches": [],
+      "exclude_patches": [],
+      "enabled": true
+    },
+    {
+      "name": "Reddit",
+      "package_name": "com.reddit.frontpage",
+      "download_url": "https://www.apkmirror.com/apk/redditinc/reddit/",
+      "version": "latest",
+      "patches": [],
+      "exclude_patches": [],
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "max_retries": 3,
+    "retry_delay": 5,
+    "cleanup_after_patch": true,
+    "create_issues_for_failures": true,
+    "architectures": [
+      "armeabi-v7a",
+      "arm64-v8a",
+      "x86_64",
+      "universal"
+    ],
+    "prefer_nodpi": true,
+    "download_multiple_architectures": true
+  }
+}

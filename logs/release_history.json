@@ -1,0 +1,304 @@
+[
+  {
+    "timestamp": "2025-10-17T11:11:00.639951",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18590859461",
+    "apps_released": [
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 116.8,
+    "architecture_variants": {
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-10-17T11:50:39.744626",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18591767746",
+    "apps_released": [
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 116.8,
+    "architecture_variants": {
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-10-17T12:03:55.185084",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18591970145",
+    "apps_released": [
+      {
+        "name": "YouTube",
+        "package": "com.google.android.youtube",
+        "architecture": "universal",
+        "size_mb": 159.8,
+        "filename": "com.google.android.youtube-v20.14.43-universal-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "armeabi-v7a",
+        "size_mb": 50.0,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "arm64-v8a",
+        "size_mb": 60.8,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-arm64-v8a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "x86_64",
+        "size_mb": 63.1,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-x86_64-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "universal",
+        "size_mb": 64.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-universal-patched.apk"
+      },
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 515.4,
+    "architecture_variants": {
+      "YouTube": [
+        "universal"
+      ],
+      "YouTube Music": [
+        "armeabi-v7a",
+        "arm64-v8a",
+        "x86_64",
+        "universal"
+      ],
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-10-17T12:48:01.997878",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18593022985",
+    "apps_released": [
+      {
+        "name": "YouTube",
+        "package": "com.google.android.youtube",
+        "architecture": "universal",
+        "size_mb": 159.8,
+        "filename": "com.google.android.youtube-v20.14.43-universal-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "armeabi-v7a",
+        "size_mb": 50.0,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "arm64-v8a",
+        "size_mb": 60.8,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-arm64-v8a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "x86_64",
+        "size_mb": 63.1,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-x86_64-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "universal",
+        "size_mb": 64.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-universal-patched.apk"
+      },
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 515.4,
+    "architecture_variants": {
+      "YouTube": [
+        "universal"
+      ],
+      "YouTube Music": [
+        "armeabi-v7a",
+        "arm64-v8a",
+        "x86_64",
+        "universal"
+      ],
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-10-17T12:57:41.000269",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18593256046",
+    "apps_released": [
+      {
+        "name": "YouTube",
+        "package": "com.google.android.youtube",
+        "architecture": "universal",
+        "size_mb": 159.8,
+        "filename": "com.google.android.youtube-v20.14.43-universal-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "armeabi-v7a",
+        "size_mb": 49.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "arm64-v8a",
+        "size_mb": 60.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-arm64-v8a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "x86_64",
+        "size_mb": 63.1,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-x86_64-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "universal",
+        "size_mb": 64.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-universal-patched.apk"
+      },
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 515.3,
+    "architecture_variants": {
+      "YouTube": [
+        "universal"
+      ],
+      "YouTube Music": [
+        "armeabi-v7a",
+        "arm64-v8a",
+        "x86_64",
+        "universal"
+      ],
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-10-17T13:06:26.098901",
+    "tag": "patched-2025-10-17",
+    "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+    "run_id": "18593469195",
+    "apps_released": [
+      {
+        "name": "YouTube",
+        "package": "com.google.android.youtube",
+        "architecture": "universal",
+        "size_mb": 159.8,
+        "filename": "com.google.android.youtube-v20.14.43-universal-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "armeabi-v7a",
+        "size_mb": 50.0,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "arm64-v8a",
+        "size_mb": 60.8,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-arm64-v8a-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "x86_64",
+        "size_mb": 63.1,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-x86_64-patched.apk"
+      },
+      {
+        "name": "YouTube Music",
+        "package": "com.google.android.apps.youtube.music",
+        "architecture": "universal",
+        "size_mb": 64.9,
+        "filename": "com.google.android.apps.youtube.music-v8.10.52-universal-patched.apk"
+      },
+      {
+        "name": "Google Photos",
+        "package": "com.google.android.apps.photos",
+        "architecture": "universal",
+        "size_mb": 116.8,
+        "filename": "com.google.android.apps.photos-v7.48.0-universal-patched.apk"
+      }
+    ],
+    "total_size_mb": 515.4,
+    "architecture_variants": {
+      "YouTube": [
+        "universal"
+      ],
+      "YouTube Music": [
+        "armeabi-v7a",
+        "arm64-v8a",
+        "x86_64",
+        "universal"
+      ],
+      "Google Photos": [
+        "universal"
+      ]
+    }
+  }
+]

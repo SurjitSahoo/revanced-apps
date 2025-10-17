@@ -1,0 +1,137 @@
+name: Patch APKs with ReVanced
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sunday at midnight UTC
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches: [initial-setup, main]
+    # Uncomment below to only trigger on config changes:
+    # paths:
+    #   - 'config/apps.json'
+
+jobs:
+  patch-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Download ReVanced tools
+        run: |
+          python scripts/setup_revanced.py
+          # Exit codes: 0=success, 1=critical error (fail pipeline)
+
+      - name: Generate Patch Analysis
+        run: |
+          python scripts/patch_analyzer.py
+          # Analyzes ReVanced patches to determine latest supported app versions
+
+      - name: Download APKs
+        run: |
+          python scripts/downloader.py
+          # Exit codes: 0=success, 1=critical error (fail pipeline), 2=all failed (continue to issues)
+
+      - name: Analyze Download Results
+        id: download_analysis
+        run: |
+          if [ -f "downloads/download_results.json" ]; then
+            echo "download_results_exist=true" >> $GITHUB_OUTPUT
+            successful=$(python -c "import json; data=json.load(open('downloads/download_results.json')); print(len(data['successful']))")
+            failed=$(python -c "import json; data=json.load(open('downloads/download_results.json')); print(len(data['failed']))")
+            echo "download_successful=$successful" >> $GITHUB_OUTPUT
+            echo "download_failed=$failed" >> $GITHUB_OUTPUT
+          else
+            echo "download_results_exist=false" >> $GITHUB_OUTPUT
+            echo "download_successful=0" >> $GITHUB_OUTPUT
+            echo "download_failed=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Patch APKs
+        id: patch
+        if: steps.download_analysis.outputs.download_successful > 0
+        run: |
+          python scripts/patcher.py
+          # Exit codes: 0=success, 1=critical error (fail pipeline), 2=all failed (continue to issues)
+        continue-on-error: false
+
+      - name: Analyze Patch Results
+        id: patch_analysis
+        if: always() && steps.download_analysis.outputs.download_successful > 0
+        run: |
+          if [ -f "output/patch_results.json" ]; then
+            echo "patch_results_exist=true" >> $GITHUB_OUTPUT
+            successful=$(python -c "import json; data=json.load(open('output/patch_results.json')); print(len(data['successful']))")
+            failed=$(python -c "import json; data=json.load(open('output/patch_results.json')); print(len(data['failed']))")
+            echo "success_count=$successful" >> $GITHUB_OUTPUT
+            echo "failure_count=$failed" >> $GITHUB_OUTPUT
+          else
+            echo "patch_results_exist=false" >> $GITHUB_OUTPUT
+            echo "success_count=0" >> $GITHUB_OUTPUT
+            echo "failure_count=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release
+        if: steps.patch_analysis.outputs.success_count > 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/release_manager.py
+
+      - name: Create Issues for Download Failures
+        if: always() && steps.download_analysis.outputs.download_failed > 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating issues for download failures..."
+          python scripts/issue_manager.py --type download
+
+      - name: Create Issues for Patch Failures
+        if: always() && steps.patch_analysis.outputs.failure_count > 0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating issues for patch failures..."
+          python scripts/issue_manager.py --type patch
+
+      - name: Log Pipeline Completion
+        if: always()
+        run: |
+          python scripts/pipeline_orchestrator.py log
+
+      - name: Commit Logs
+        if: always()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add logs/
+          if ! git diff --staged --quiet; then
+            git commit -m "📊 Update pipeline logs [skip ci]"
+            git push
+          fi
+
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -rf downloads/
+          rm -rf temp/
+          rm -rf output/original/
