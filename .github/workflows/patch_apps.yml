@@ -136,12 +136,34 @@ jobs:
       - name: Commit Logs
         if: always()
         run: |
+          # Configure git
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add logs/
-          if ! git diff --staged --quiet; then
-            git commit -m "📊 Update pipeline logs [skip ci]"
-            git push
+          
+          # Only proceed if there are logs to commit
+          if [ -d "logs" ] && [ "$(ls -A logs)" ]; then
+            # Create or switch to release-logs branch
+            git fetch origin release-logs:release-logs 2>/dev/null || git checkout --orphan release-logs
+            if git show-ref --verify --quiet refs/heads/release-logs; then
+              git checkout release-logs
+            fi
+            
+            # Remove any non-log files that might be in this branch
+            find . -maxdepth 1 -type f -not -name ".*" -not -path "./logs/*" -delete 2>/dev/null || true
+            find . -maxdepth 1 -type d -not -name "." -not -name ".git" -not -name "logs" -exec rm -rf {} + 2>/dev/null || true
+            
+            # Copy logs to this branch
+            cp -r logs/* . 2>/dev/null || true
+            
+            # Add and commit logs
+            git add *.json *.html 2>/dev/null || true
+            if ! git diff --staged --quiet; then
+              git commit -m "📊 Update pipeline logs - $(date '+%Y-%m-%d %H:%M:%S')"
+              git push origin release-logs
+            fi
+            
+            # Switch back to main branch
+            git checkout main
           fi
 
       - name: Cleanup
