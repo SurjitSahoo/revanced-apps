@@ -1833,5 +1833,261 @@
       "release_created": true,
       "issues_created": 0
     }
+  },
+  {
+    "timestamp": "2025-10-17T13:48:08.870138",
+    "run_id": "18594558267",
+    "run_number": "12",
+    "workflow": "Patch APKs with ReVanced",
+    "trigger": "config_change",
+    "commit_sha": "4665f5485fd2ea8d164d807fb536629db2869408",
+    "actor": "SurjitSahoo",
+    "status": "partial",
+    "results": {
+      "downloads": {
+        "successful": [
+          {
+            "app": {
+              "name": "YouTube",
+              "package_name": "com.google.android.youtube",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "paths": [
+              "downloads/com.google.android.youtube/com.google.android.youtube-v20.14.43-universal.apk"
+            ],
+            "count": 1
+          },
+          {
+            "app": {
+              "name": "YouTube Music",
+              "package_name": "com.google.android.apps.youtube.music",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "paths": [
+              "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a.apk",
+              "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-arm64-v8a.apk",
+              "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-x86_64.apk",
+              "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-universal.apk"
+            ],
+            "count": 4
+          },
+          {
+            "app": {
+              "name": "Google Photos",
+              "package_name": "com.google.android.apps.photos",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "paths": [
+              "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-armeabi-v7a.apk",
+              "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-arm64-v8a.apk",
+              "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.49.0-x86_64.apk",
+              "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.48.0-universal.apk"
+            ],
+            "count": 4
+          }
+        ],
+        "failed": [
+          {
+            "app": {
+              "name": "Twitter",
+              "package_name": "com.twitter.android",
+              "download_url": "https://www.apkmirror.com/apk/x-corp/twitter/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "error": "No APK variants could be downloaded"
+          },
+          {
+            "app": {
+              "name": "Reddit",
+              "package_name": "com.reddit.frontpage",
+              "download_url": "https://www.apkmirror.com/apk/redditinc/reddit/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "error": "No APK variants could be downloaded"
+          }
+        ]
+      },
+      "patches": {
+        "successful": [
+          {
+            "success": true,
+            "app": {
+              "name": "YouTube",
+              "package_name": "com.google.android.youtube",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.youtube/com.google.android.youtube-v20.14.43-universal.apk",
+            "output_apk": "output/com.google.android.youtube-v20.14.43-universal-patched.apk",
+            "log_file": "output/com.google.android.youtube-patch.log"
+          },
+          {
+            "success": true,
+            "app": {
+              "name": "YouTube Music",
+              "package_name": "com.google.android.apps.youtube.music",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a.apk",
+            "output_apk": "output/com.google.android.apps.youtube.music-v8.10.52-armeabi-v7a-patched.apk",
+            "log_file": "output/com.google.android.apps.youtube.music-patch.log"
+          },
+          {
+            "success": true,
+            "app": {
+              "name": "YouTube Music",
+              "package_name": "com.google.android.apps.youtube.music",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-arm64-v8a.apk",
+            "output_apk": "output/com.google.android.apps.youtube.music-v8.10.52-arm64-v8a-patched.apk",
+            "log_file": "output/com.google.android.apps.youtube.music-patch.log"
+          },
+          {
+            "success": true,
+            "app": {
+              "name": "YouTube Music",
+              "package_name": "com.google.android.apps.youtube.music",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-x86_64.apk",
+            "output_apk": "output/com.google.android.apps.youtube.music-v8.10.52-x86_64-patched.apk",
+            "log_file": "output/com.google.android.apps.youtube.music-patch.log"
+          },
+          {
+            "success": true,
+            "app": {
+              "name": "YouTube Music",
+              "package_name": "com.google.android.apps.youtube.music",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.youtube.music/com.google.android.apps.youtube.music-v8.10.52-universal.apk",
+            "output_apk": "output/com.google.android.apps.youtube.music-v8.10.52-universal-patched.apk",
+            "log_file": "output/com.google.android.apps.youtube.music-patch.log"
+          },
+          {
+            "success": true,
+            "app": {
+              "name": "Google Photos",
+              "package_name": "com.google.android.apps.photos",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.48.0-universal.apk",
+            "output_apk": "output/com.google.android.apps.photos-v7.48.0-universal-patched.apk",
+            "log_file": "output/com.google.android.apps.photos-patch.log"
+          }
+        ],
+        "failed": [
+          {
+            "success": false,
+            "app": {
+              "name": "Google Photos",
+              "package_name": "com.google.android.apps.photos",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-armeabi-v7a.apk",
+            "error": "lanchon.multidexlib2.EmptyMultiDexContainerException: downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-armeabi-v7a.apk\n\tat lanchon.multidexlib2.MultiDexIO.readMultiDexContainer(MultiDexIO.java:41)\n\tat lanchon.multidexlib2.MultiDexIO.readDexFile(MultiDexIO.java:33)\n\tat app.revanced.patcher.patch.BytecodePatchContext.<init>(BytecodePatchContext.kt:48)\n\tat app.revanced.patcher.PatcherContext.<init>(PatcherContext.kt:40)\n\tat app.revanced.patcher.Patcher.<init>(Patcher.kt:19)\n\tat app.revanced.cli.command.PatchCommand.run(PatchCommand.kt:288)\n\tat picocli.CommandLine.executeUserObject(CommandLine.java:2030)\n\tat picocli.CommandLine.access$1500(CommandLine.java:148)\n\tat picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2465)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2457)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2419)\n\tat picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)\n\tat picocli.CommandLine$RunLast.execute(CommandLine.java:2421)\n\tat picocli.CommandLine.execute(CommandLine.java:2174)\n\tat app.revanced.cli.command.MainCommandKt.main(MainCommand.kt:12)\n",
+            "return_code": 1,
+            "log_file": "output/com.google.android.apps.photos-patch.log"
+          },
+          {
+            "success": false,
+            "app": {
+              "name": "Google Photos",
+              "package_name": "com.google.android.apps.photos",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-arm64-v8a.apk",
+            "error": "lanchon.multidexlib2.EmptyMultiDexContainerException: downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.50.0-arm64-v8a.apk\n\tat lanchon.multidexlib2.MultiDexIO.readMultiDexContainer(MultiDexIO.java:41)\n\tat lanchon.multidexlib2.MultiDexIO.readDexFile(MultiDexIO.java:33)\n\tat app.revanced.patcher.patch.BytecodePatchContext.<init>(BytecodePatchContext.kt:48)\n\tat app.revanced.patcher.PatcherContext.<init>(PatcherContext.kt:40)\n\tat app.revanced.patcher.Patcher.<init>(Patcher.kt:19)\n\tat app.revanced.cli.command.PatchCommand.run(PatchCommand.kt:288)\n\tat picocli.CommandLine.executeUserObject(CommandLine.java:2030)\n\tat picocli.CommandLine.access$1500(CommandLine.java:148)\n\tat picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2465)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2457)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2419)\n\tat picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)\n\tat picocli.CommandLine$RunLast.execute(CommandLine.java:2421)\n\tat picocli.CommandLine.execute(CommandLine.java:2174)\n\tat app.revanced.cli.command.MainCommandKt.main(MainCommand.kt:12)\n",
+            "return_code": 1,
+            "log_file": "output/com.google.android.apps.photos-patch.log"
+          },
+          {
+            "success": false,
+            "app": {
+              "name": "Google Photos",
+              "package_name": "com.google.android.apps.photos",
+              "download_url": "https://www.apkmirror.com/apk/google-inc/photos/",
+              "version": "latest",
+              "patches": [],
+              "exclude_patches": [],
+              "enabled": true
+            },
+            "input_apk": "downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.49.0-x86_64.apk",
+            "error": "lanchon.multidexlib2.EmptyMultiDexContainerException: downloads/com.google.android.apps.photos/com.google.android.apps.photos-v7.49.0-x86_64.apk\n\tat lanchon.multidexlib2.MultiDexIO.readMultiDexContainer(MultiDexIO.java:41)\n\tat lanchon.multidexlib2.MultiDexIO.readDexFile(MultiDexIO.java:33)\n\tat app.revanced.patcher.patch.BytecodePatchContext.<init>(BytecodePatchContext.kt:48)\n\tat app.revanced.patcher.PatcherContext.<init>(PatcherContext.kt:40)\n\tat app.revanced.patcher.Patcher.<init>(Patcher.kt:19)\n\tat app.revanced.cli.command.PatchCommand.run(PatchCommand.kt:288)\n\tat picocli.CommandLine.executeUserObject(CommandLine.java:2030)\n\tat picocli.CommandLine.access$1500(CommandLine.java:148)\n\tat picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2465)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2457)\n\tat picocli.CommandLine$RunLast.handle(CommandLine.java:2419)\n\tat picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2277)\n\tat picocli.CommandLine$RunLast.execute(CommandLine.java:2421)\n\tat picocli.CommandLine.execute(CommandLine.java:2174)\n\tat app.revanced.cli.command.MainCommandKt.main(MainCommand.kt:12)\n",
+            "return_code": 1,
+            "log_file": "output/com.google.android.apps.photos-patch.log"
+          }
+        ],
+        "timestamp": "2025-10-17T13:43:48.508958"
+      },
+      "release": {
+        "tag": "patched-2025-10-17",
+        "url": "https://github.com/SurjitSahoo/revanced-apps/releases/tag/patched-2025-10-17",
+        "created_at": "2025-10-17T13:48:00.574997"
+      },
+      "issues": {
+        "created": [],
+        "updated": []
+      }
+    },
+    "summary": {
+      "apps_attempted": 5,
+      "downloads_successful": 3,
+      "downloads_failed": 2,
+      "patches_successful": 6,
+      "patches_failed": 3,
+      "release_created": true,
+      "issues_created": 0
+    }
   }
 ]
