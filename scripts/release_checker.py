@@ -5,10 +5,11 @@ Check if there are new versions to release based on patch analysis and previous 
 
 import json
 import sys
+import os
+import requests
 from pathlib import Path
 from datetime import datetime, timedelta
 
-RELEASE_HISTORY_FILE = Path("logs/release_history.json")
 PATCH_ANALYSIS_FILE = Path("downloads/patch_analysis.json")
 
 def load_patch_analysis():
@@ -20,35 +21,60 @@ def load_patch_analysis():
     with open(PATCH_ANALYSIS_FILE, 'r') as f:
         return json.load(f)
 
-def load_release_history():
-    """Load the release history"""
-    if not RELEASE_HISTORY_FILE.exists():
-        print("📋 No release history found - will proceed with release")
+def load_release_history_from_github():
+    """Load the release history from GitHub API"""
+    try:
+        # Get repository info from environment or use default
+        repo_name = os.environ.get('GITHUB_REPOSITORY', 'SurjitSahoo/revanced-apps')
+        
+        # Try to get GitHub token for higher rate limits, but work without it
+        github_token = os.environ.get('GITHUB_TOKEN')
+        headers = {}
+        if github_token:
+            headers['Authorization'] = f'token {github_token}'
+        
+        # Fetch releases from GitHub API
+        url = f"https://api.github.com/repos/{repo_name}/releases"
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            releases = response.json()
+            print(f"📋 Found {len(releases)} GitHub releases")
+            return releases
+        else:
+            print(f"⚠️  Failed to fetch releases from GitHub API: HTTP {response.status_code}")
+            return []
+            
+    except Exception as e:
+        print(f"⚠️  Error fetching release history from GitHub: {e}")
         return []
-    
-    with open(RELEASE_HISTORY_FILE, 'r') as f:
-        return json.load(f)
 
 def get_latest_released_versions():
-    """Get the latest released versions for each app from release history"""
-    history = load_release_history()
-    if not history:
+    """Get the latest released versions for each app from GitHub releases"""
+    releases = load_release_history_from_github()
+    if not releases:
         return {}
     
     # Get the most recent release
-    latest_release = max(history, key=lambda x: x['timestamp'])
+    latest_release = max(releases, key=lambda x: x['published_at'])
     
-    # Extract app versions from the latest release
+    print(f"📋 Latest release: {latest_release['tag_name']} ({latest_release['published_at']})")
+    
+    # Extract app versions from the release assets
     released_versions = {}
-    for app in latest_release.get('apps_released', []):
-        package = app['package']
-        filename = app['filename']
+    for asset in latest_release.get('assets', []):
+        filename = asset['name']
         
-        # Extract version from filename (e.g., com.google.android.youtube-v20.14.43-universal-patched.apk)
+        # Extract package name and version from filename 
+        # (e.g., com.google.android.youtube-v20.14.43-universal-patched.apk)
         import re
+        package_match = re.search(r'^([^-]+)', filename)
         version_match = re.search(r'-v?(\d+\.\d+\.\d+(?:\.\d+)?)', filename)
-        if version_match:
+        
+        if package_match and version_match:
+            package = package_match.group(1)
             version = version_match.group(1)
+            
             if package not in released_versions:
                 released_versions[package] = set()
             released_versions[package].add(version)
@@ -62,16 +88,15 @@ def check_for_new_versions():
         return False, "No patch analysis available"
     
     released_versions = get_latest_released_versions()
-    release_history = load_release_history()
+    releases = load_release_history_from_github()
     
     new_versions_found = []
     
     # Get the timestamp of the latest release for time-based checks
     latest_release_time = None
-    if release_history:
-        latest_release = max(release_history, key=lambda x: x['timestamp'])
-        from datetime import datetime
-        latest_release_time = datetime.fromisoformat(latest_release['timestamp'].replace('Z', '+00:00'))
+    if releases:
+        latest_release = max(releases, key=lambda x: x['published_at'])
+        latest_release_time = datetime.fromisoformat(latest_release['published_at'].replace('Z', '+00:00'))
     
     for package, app_info in patch_analysis.items():
         app_name = app_info['name']
@@ -84,14 +109,16 @@ def check_for_new_versions():
         if app_info.get('supports_any_version') or recommended_version in ['any', 'latest']:
             # For "any" version apps, check if we've released recently (within last 7 days)
             if latest_release_time:
-                days_since_release = (datetime.now() - latest_release_time).days
+                # Make datetime timezone-aware for comparison
+                now = datetime.now(latest_release_time.tzinfo)
+                days_since_release = (now - latest_release_time).days
                 
                 # Check if this app was in the latest release
                 app_in_latest_release = False
-                if release_history:
-                    latest_release = max(release_history, key=lambda x: x['timestamp'])
-                    for app in latest_release.get('apps_released', []):
-                        if app['package'] == package:
+                if releases:
+                    latest_release = max(releases, key=lambda x: x['published_at'])
+                    for asset in latest_release.get('assets', []):
+                        if package in asset['name']:
                             app_in_latest_release = True
                             break
                 
