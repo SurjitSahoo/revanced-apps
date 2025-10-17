@@ -939,7 +939,8 @@ def download_app_apks(app, settings):
         
         # Get variants from this version with retry logic
         variants = None
-        max_variant_retries = 3 if parser.is_github_actions else 1
+        configured_max_retries = settings.get('max_retries', 3)
+        max_variant_retries = configured_max_retries if parser.is_github_actions else 1
         
         for retry in range(max_variant_retries):
             try:
@@ -947,15 +948,17 @@ def download_app_apks(app, settings):
                 if variants:
                     break
                 elif retry < max_variant_retries - 1:
-                    retry_delay = 5 if parser.is_github_actions else 2
-                    print(f"    🔄 No variants found, retrying in {retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
-                    time.sleep(retry_delay)
+                    configured_retry_delay = settings.get('retry_delay', 5)
+                    variant_retry_delay = configured_retry_delay if parser.is_github_actions else 2
+                    print(f"    🔄 No variants found, retrying in {variant_retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    time.sleep(variant_retry_delay)
             except Exception as e:
                 if retry < max_variant_retries - 1:
-                    retry_delay = 5 if parser.is_github_actions else 2
+                    configured_retry_delay = settings.get('retry_delay', 5)
+                    variant_retry_delay = configured_retry_delay if parser.is_github_actions else 2
                     print(f"    ❌ Variant detection failed: {e}")
-                    print(f"    🔄 Retrying in {retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
-                    time.sleep(retry_delay)
+                    print(f"    🔄 Retrying in {variant_retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    time.sleep(variant_retry_delay)
                 else:
                     print(f"    ❌ Variant detection failed after {max_variant_retries} attempts: {e}")
         
