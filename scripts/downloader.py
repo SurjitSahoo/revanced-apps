@@ -59,15 +59,27 @@ class APKMirrorParser:
     
     def __init__(self):
         self.session = requests.Session()
+        
+        # Detect if running in GitHub Actions
+        self.is_github_actions = bool(os.environ.get('GITHUB_ACTIONS'))
+        
+        # Use different User-Agents for better success rate
+        user_agents = [
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36'
+        ]
+        
+        import random
+        selected_ua = random.choice(user_agents)
+        
         self.session.headers.update({
-            'User-Agent': (
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                'AppleWebKit/537.36 (KHTML, like Gecko) '
-                'Chrome/118.0.0.0 Safari/537.36'
-            ),
+            'User-Agent': selected_ua,
             'Accept-Language': 'en-US,en;q=0.9',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
             'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0'
         })
     
     def get_all_version_pages(self, app_url, limit=50):
@@ -210,14 +222,24 @@ class APKMirrorParser:
     def _get_variants_from_version_page(self, version_page_url, architectures, prefer_nodpi=True, debug=False):
         """Get real APK variants from a specific version page - simplified and more reliable"""
         try:
-            response = self.session.get(version_page_url, timeout=30)
+            if debug or self.is_github_actions:
+                print(f"      🌐 Requesting page: {version_page_url}")
+            
+            response = self.session.get(version_page_url, timeout=45)  # Longer timeout for CI
             response.raise_for_status()
+            
+            if response.status_code != 200:
+                raise Exception(f"HTTP {response.status_code}: {response.reason}")
             
             soup = BeautifulSoup(response.content, 'html.parser')
             variants = []
             
             if debug:
                 print(f"      🔍 Parsing version page for architecture-specific variants...")
+            
+            # Check if we got a valid APKMirror page
+            if not soup.find('title') or 'apkmirror' not in soup.find('title').get_text().lower():
+                raise Exception("Invalid APKMirror page structure")
             
             # Method 1: Look for architecture names and their associated download links
             arch_keywords = {
@@ -805,11 +827,22 @@ def download_app_apks(app, settings):
     
     # Determine version strategy based on patch support
     if supports_any_version or (supported_versions and supported_versions[0] == "any"):
-        # App supports any version - discover latest available versions
-        print("  🔍 App supports any version - discovering latest available versions...")
-        version_pages = parser.get_all_version_pages(app['download_url'], limit=10)
-        
-        # Debug output for troubleshooting
+    # App supports any version - discover latest available versions
+    print("  🔍 App supports any version - discovering latest available versions...")
+    
+    # Special handling for apps that commonly fail in GitHub Actions
+    if app['package_name'] in ['com.twitter.android', 'com.reddit.frontpage'] and parser.is_github_actions:
+        print(f"  🔧 Applying special GitHub Actions handling for {app['name']}...")
+        # Add extra delay for these problematic apps
+        time.sleep(5)
+        # Try with limited version search first
+        version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
+        if not version_pages:
+            print("  🔄 Retrying with different approach...")
+            time.sleep(10)
+            version_pages = parser.get_all_version_pages(app['download_url'], limit=3)
+    else:
+        version_pages = parser.get_all_version_pages(app['download_url'], limit=10)        # Debug output for troubleshooting
         if not version_pages and app['name'] == 'Google Photos':
             print("  🔍 Debug: Testing Google Photos page parsing...")
             try:
@@ -893,11 +926,36 @@ def download_app_apks(app, settings):
         else:
             print(f"  🔍 Checking version {version_str} (latest available)...")
         
-        # Add delay to avoid rate limiting
-        time.sleep(1)
+        # Add delay to avoid rate limiting - longer delays in GitHub Actions
+        if self.is_github_actions:
+            delay = 3  # Longer delay in CI environment
+        else:
+            delay = 1  # Normal delay for local
         
-        # Get variants from this version
-        variants = parser._get_variants_from_version_page(version_url, architectures, prefer_nodpi, debug=False)
+        print(f"    ⏱️  Waiting {delay}s to avoid rate limiting...")
+        time.sleep(delay)
+        
+        # Get variants from this version with retry logic
+        variants = None
+        max_variant_retries = 3 if parser.is_github_actions else 1
+        
+        for retry in range(max_variant_retries):
+            try:
+                variants = parser._get_variants_from_version_page(version_url, architectures, prefer_nodpi, debug=False)
+                if variants:
+                    break
+                elif retry < max_variant_retries - 1:
+                    retry_delay = 5 if parser.is_github_actions else 2
+                    print(f"    🔄 No variants found, retrying in {retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    time.sleep(retry_delay)
+            except Exception as e:
+                if retry < max_variant_retries - 1:
+                    retry_delay = 5 if parser.is_github_actions else 2
+                    print(f"    ❌ Variant detection failed: {e}")
+                    print(f"    🔄 Retrying in {retry_delay}s... (attempt {retry + 1}/{max_variant_retries})")
+                    time.sleep(retry_delay)
+                else:
+                    print(f"    ❌ Variant detection failed after {max_variant_retries} attempts: {e}")
         
         if variants:
             print(f"    📦 Found {len(variants)} real variants in v{version_str}")
