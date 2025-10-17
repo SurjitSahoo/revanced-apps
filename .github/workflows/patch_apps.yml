@@ -139,7 +139,7 @@ jobs:
           # Configure git
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          
+
           # Only proceed if there are logs to commit
           if [ -d "logs" ] && [ "$(ls -A logs)" ]; then
             # Create or switch to release-logs branch

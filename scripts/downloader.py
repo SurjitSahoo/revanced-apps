@@ -827,22 +827,24 @@ def download_app_apks(app, settings):
     
     # Determine version strategy based on patch support
     if supports_any_version or (supported_versions and supported_versions[0] == "any"):
-    # App supports any version - discover latest available versions
-    print("  🔍 App supports any version - discovering latest available versions...")
-    
-    # Special handling for apps that commonly fail in GitHub Actions
-    if app['package_name'] in ['com.twitter.android', 'com.reddit.frontpage'] and parser.is_github_actions:
-        print(f"  🔧 Applying special GitHub Actions handling for {app['name']}...")
-        # Add extra delay for these problematic apps
-        time.sleep(5)
-        # Try with limited version search first
-        version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
-        if not version_pages:
-            print("  🔄 Retrying with different approach...")
-            time.sleep(10)
-            version_pages = parser.get_all_version_pages(app['download_url'], limit=3)
-    else:
-        version_pages = parser.get_all_version_pages(app['download_url'], limit=10)        # Debug output for troubleshooting
+        # App supports any version - discover latest available versions
+        print("  🔍 App supports any version - discovering latest available versions...")
+        
+        # Special handling for apps that commonly fail in GitHub Actions
+        if app['package_name'] in ['com.twitter.android', 'com.reddit.frontpage'] and parser.is_github_actions:
+            print(f"  🔧 Applying special GitHub Actions handling for {app['name']}...")
+            # Add extra delay for these problematic apps
+            time.sleep(5)
+            # Try with limited version search first
+            version_pages = parser.get_all_version_pages(app['download_url'], limit=5)
+            if not version_pages:
+                print("  🔄 Retrying with different approach...")
+                time.sleep(10)
+                version_pages = parser.get_all_version_pages(app['download_url'], limit=3)
+        else:
+            version_pages = parser.get_all_version_pages(app['download_url'], limit=10)
+        
+        # Debug output for troubleshooting
         if not version_pages and app['name'] == 'Google Photos':
             print("  🔍 Debug: Testing Google Photos page parsing...")
             try:
