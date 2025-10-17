@@ -930,7 +930,7 @@ def download_app_apks(app, settings):
         
         # Add delay to avoid rate limiting - longer delays in GitHub Actions
         if parser.is_github_actions:
-            delay = 3  # Longer delay in CI environment
+            delay = settings.get('retry_delay', 5)
         else:
             delay = 1  # Normal delay for local
         
