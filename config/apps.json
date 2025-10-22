@@ -49,6 +49,7 @@
   "settings": {
     "max_retries": 5,
     "retry_delay": 60,
+    "max_patch_retries": 3,
     "cleanup_after_patch": true,
     "create_issues_for_failures": true,
     "architectures": [

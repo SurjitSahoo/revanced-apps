@@ -17,6 +17,10 @@ def is_identical_to_previous_release(repo, current_successful):
     """
     Check if the current successful patches are identical to the previous release.
     Returns True if identical (should skip release), False if different (should create release).
+    
+    This function now compares app versions rather than just asset names, so if the same
+    app versions are successfully patched as in the previous release, it will skip creating
+    a duplicate release even if some other apps failed.
     """
     try:
         # Get the latest release
@@ -31,37 +35,136 @@ def is_identical_to_previous_release(repo, current_successful):
         # Get assets from previous release
         previous_assets = {asset.name for asset in latest_release.get_assets()}
         
-        # Get current successful APK files
-        current_assets = set()
+        # Extract app versions from current successful patches
+        current_app_versions = {}
         for item in current_successful:
             output_apk_path = item.get('output_apk', '')
             if output_apk_path:
-                # Extract just the filename from the path
-                apk_filename = os.path.basename(output_apk_path)
-                current_assets.add(apk_filename)
+                # Parse the filename to extract app, version, and architecture
+                # e.g., "com.google.android.youtube-v20.14.43-universal-patched.apk"
+                filename = os.path.basename(output_apk_path)
+                if filename.endswith('-patched.apk'):
+                    # Remove -patched.apk suffix
+                    base_name = filename[:-12]  # Remove "-patched.apk"
+                    
+                    # Split into parts: package-version-architecture
+                    # Find last occurrence of version pattern (vX.X.X)
+                    import re
+                    # More flexible regex to handle complex package names
+                    version_match = re.search(r'-v([\d.]+)-([^-]+)$', base_name)
+                    if version_match:
+                        version = version_match.group(1)
+                        architecture = version_match.group(2)
+                        package = base_name[:version_match.start()]
+                    else:
+                        # Fallback: try to parse differently structured names
+                        # Look for pattern: package-v8.10.52-armeabi-v7a
+                        alt_match = re.search(r'-v([\d.]+)-(.+)$', base_name)
+                        if alt_match:
+                            version = alt_match.group(1)
+                            # Handle multi-part architectures like armeabi-v7a
+                            architecture = alt_match.group(2)
+                            package = base_name[:alt_match.start()]
+                        else:
+                            continue  # Skip if we can't parse
+                        
+                        if package not in current_app_versions:
+                            current_app_versions[package] = {}
+                        if version not in current_app_versions[package]:
+                            current_app_versions[package][version] = set()
+                        current_app_versions[package][version].add(architecture)
+        
+        # Extract app versions from previous release assets
+        previous_app_versions = {}
+        for asset_name in previous_assets:
+            if asset_name.endswith('.apk'):
+                # Same parsing logic for previous assets
+                import re
+                # More flexible regex for parsing previous assets
+                version_match = re.search(r'-v([\d.]+)-([^-]+)-patched\.apk$', asset_name)
+                if version_match:
+                    version = version_match.group(1)
+                    architecture = version_match.group(2)
+                    package = asset_name[:version_match.start()]
+                else:
+                    # Fallback: try alternative pattern for complex architectures
+                    alt_match = re.search(r'-v([\d.]+)-(.+)-patched\.apk$', asset_name)
+                    if alt_match:
+                        version = alt_match.group(1)
+                        architecture = alt_match.group(2)
+                        package = asset_name[:alt_match.start()]
+                    else:
+                        continue  # Skip if we can't parse
+                    
+                    if package not in previous_app_versions:
+                        previous_app_versions[package] = {}
+                    if version not in previous_app_versions[package]:
+                        previous_app_versions[package][version] = set()
+                    previous_app_versions[package][version].add(architecture)
         
         # Debug: show what we're comparing
-        print(f"🔍 Previous assets: {sorted(previous_assets)}")
-        print(f"🔍 Current assets: {sorted(current_assets)}")
+        print(f"� Current successful apps and versions:")
+        for package, versions in current_app_versions.items():
+            for version, archs in versions.items():
+                print(f"   {package} v{version}: {', '.join(sorted(archs))}")
         
-        print(f"📋 Previous release had {len(previous_assets)} assets")
-        print(f"📋 Current successful patches: {len(current_assets)} assets")
+        print(f"🔍 Previous release apps and versions:")
+        for package, versions in previous_app_versions.items():
+            for version, archs in versions.items():
+                print(f"   {package} v{version}: {', '.join(sorted(archs))}")
         
-        # Compare the sets
-        if current_assets == previous_assets:
-            print("✅ Asset lists are identical")
+        # Check if current successful patches are a subset of previous release
+        # This means all currently successful apps/versions were already released before
+        current_is_subset_of_previous = True
+        for package, versions in current_app_versions.items():
+            if package not in previous_app_versions:
+                current_is_subset_of_previous = False
+                break
+            for version, archs in versions.items():
+                if version not in previous_app_versions[package]:
+                    current_is_subset_of_previous = False
+                    break
+                # Check if all current architectures exist in previous release
+                if not archs.issubset(previous_app_versions[package][version]):
+                    current_is_subset_of_previous = False
+                    break
+            if not current_is_subset_of_previous:
+                break
+        
+        if current_is_subset_of_previous and current_app_versions:
+            print("✅ All current successful patches already exist in previous release")
+            print("📝 Skipping release - no new content (successful apps are subset of previous release)")
             return True
         else:
-            print("📝 Asset differences detected:")
-            if current_assets - previous_assets:
-                print(f"   New assets: {', '.join(current_assets - previous_assets)}")
-            if previous_assets - current_assets:
-                print(f"   Removed assets: {', '.join(previous_assets - current_assets)}")
+            print("📝 App version differences detected:")
+            
+            # Show which apps/versions are new
+            for package, versions in current_app_versions.items():
+                if package not in previous_app_versions:
+                    print(f"   New app: {package}")
+                else:
+                    for version, archs in versions.items():
+                        if version not in previous_app_versions[package]:
+                            print(f"   New version: {package} v{version}")
+                        elif archs != previous_app_versions[package][version]:
+                            print(f"   Different architectures: {package} v{version}")
+            
+            # Show which apps/versions were removed
+            for package, versions in previous_app_versions.items():
+                if package not in current_app_versions:
+                    print(f"   Removed app: {package}")
+                else:
+                    for version, archs in versions.items():
+                        if version not in current_app_versions[package]:
+                            print(f"   Removed version: {package} v{version}")
+            
             return False
             
     except Exception as e:
         print(f"⚠️  Error comparing with previous release: {e}")
         print("🔄 Proceeding with release creation to be safe")
+        import traceback
+        traceback.print_exc()
         return False
 
 def create_release():

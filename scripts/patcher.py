@@ -70,9 +70,9 @@ def _extract_architecture_from_filename(filename):
             return 'armeabi-v7a' if arch in ['armv7', 'armeabi'] else arch
         return 'universal'  # Default fallback
 
-def patch_apk(apk_path, app_info, revanced_files):
+def patch_apk(apk_path, app_info, revanced_files, max_retries=3):
     """
-    Patch a single APK using ReVanced CLI
+    Patch a single APK using ReVanced CLI with retry logic
     """
     app_name = app_info['name']
     package_name = app_info['package_name']
@@ -109,69 +109,109 @@ def patch_apk(apk_path, app_info, revanced_files):
     
     print(f"Command: {' '.join(cmd)}\n")
     
-    try:
-        # Run the patching process
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=600  # 10 minute timeout
-        )
-        
-        # Log output
-        log_file = OUTPUT_DIR / f"{package_name}-patch.log"
-        with open(log_file, 'w') as f:
-            f.write(f"Command: {' '.join(cmd)}\n\n")
-            f.write("STDOUT:\n")
-            f.write(result.stdout)
-            f.write("\n\nSTDERR:\n")
-            f.write(result.stderr)
-            f.write(f"\n\nReturn code: {result.returncode}")
-        
-        if result.returncode == 0 and output_path.exists():
-            print(f"✓ Successfully patched {app_name}")
-            return {
-                'success': True,
-                'app': app_info,
-                'input_apk': str(apk_path),
-                'output_apk': str(output_path),
-                'log_file': str(log_file)
-            }
-        else:
-            print(f"✗ Failed to patch {app_name}")
-            print(f"  Return code: {result.returncode}")
-            if result.stderr:
-                print(f"  Error: {result.stderr[:200]}")
+    # Retry logic for patching
+    last_error = None
+    log_file = OUTPUT_DIR / f"{package_name}-patch.log"
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"📱 Patching attempt {attempt + 1}/{max_retries}...")
             
-            return {
-                'success': False,
-                'app': app_info,
-                'input_apk': str(apk_path),
-                'error': result.stderr or result.stdout,
-                'return_code': result.returncode,
-                'log_file': str(log_file)
+            # Clean up previous output file if it exists
+            if output_path.exists():
+                output_path.unlink()
+            
+            # Run the patching process
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=600  # 10 minute timeout
+            )
+            
+            # Log output (append for multiple attempts)
+            log_mode = 'w' if attempt == 0 else 'a'
+            with open(log_file, log_mode) as f:
+                if attempt > 0:
+                    f.write(f"\n\n{'='*50}\nRETRY ATTEMPT {attempt + 1}/{max_retries}\n{'='*50}\n")
+                f.write(f"Command: {' '.join(cmd)}\n\n")
+                f.write("STDOUT:\n")
+                f.write(result.stdout)
+                f.write("\n\nSTDERR:\n")
+                f.write(result.stderr)
+                f.write(f"\n\nReturn code: {result.returncode}")
+            
+            if result.returncode == 0 and output_path.exists():
+                print(f"✓ Successfully patched {app_name} (attempt {attempt + 1})")
+                return {
+                    'success': True,
+                    'app': app_info,
+                    'input_apk': str(apk_path),
+                    'output_apk': str(output_path),
+                    'log_file': str(log_file),
+                    'attempts': attempt + 1
+                }
+            else:
+                error_msg = result.stderr or result.stdout
+                last_error = {
+                    'error': error_msg,
+                    'return_code': result.returncode,
+                    'attempt': attempt + 1
+                }
+                
+                if attempt < max_retries - 1:
+                    print(f"✗ Patching failed (attempt {attempt + 1}), retrying...")
+                    print(f"  Return code: {result.returncode}")
+                    if result.stderr:
+                        print(f"  Error: {result.stderr[:200]}")
+                    print(f"🔄 Waiting 3 seconds before retry...")
+                    import time
+                    time.sleep(3)
+                else:
+                    print(f"✗ Failed to patch {app_name} after {max_retries} attempts")
+                    print(f"  Final return code: {result.returncode}")
+                    if result.stderr:
+                        print(f"  Final error: {result.stderr[:200]}")
+                
+        except subprocess.TimeoutExpired:
+            error_msg = f"Patching timed out after 10 minutes (attempt {attempt + 1})"
+            print(f"✗ {error_msg}")
+            last_error = {
+                'error': error_msg,
+                'return_code': -1,
+                'attempt': attempt + 1
             }
             
-    except subprocess.TimeoutExpired:
-        error_msg = f"Patching timed out after 10 minutes"
-        print(f"✗ {error_msg}")
-        return {
-            'success': False,
-            'app': app_info,
-            'input_apk': str(apk_path),
-            'error': error_msg,
-            'log_file': None
-        }
-    except Exception as e:
-        error_msg = f"Unexpected error: {str(e)}"
-        print(f"✗ {error_msg}")
-        return {
-            'success': False,
-            'app': app_info,
-            'input_apk': str(apk_path),
-            'error': error_msg,
-            'log_file': None
-        }
+            if attempt < max_retries - 1:
+                print(f"🔄 Retrying after timeout...")
+                import time
+                time.sleep(3)
+            
+        except Exception as e:
+            error_msg = f"Unexpected error: {str(e)} (attempt {attempt + 1})"
+            print(f"✗ {error_msg}")
+            last_error = {
+                'error': error_msg,
+                'return_code': -1,
+                'attempt': attempt + 1
+            }
+            
+            if attempt < max_retries - 1:
+                print(f"🔄 Retrying after error...")
+                import time
+                time.sleep(3)
+    
+    # All attempts failed
+    return {
+        'success': False,
+        'app': app_info,
+        'input_apk': str(apk_path),
+        'error': last_error['error'],
+        'return_code': last_error['return_code'],
+        'log_file': str(log_file),
+        'attempts': max_retries
+    }
+
 
 def main():
     """
@@ -210,6 +250,18 @@ def main():
             print(f"❌ Critical Error: {e}")
             return 1  # Critical error - missing tools
         
+        # Load configuration for retry settings
+        config_file = Path("config/apps.json")
+        max_patch_retries = 3  # Default
+        if config_file.exists():
+            try:
+                with open(config_file, 'r') as f:
+                    config = json.load(f)
+                    max_patch_retries = config.get('settings', {}).get('max_patch_retries', 3)
+                    print(f"📋 Patch retry limit: {max_patch_retries}")
+            except Exception as e:
+                print(f"⚠️  Could not load config, using default retry limit: {e}")
+        
         # Patch each downloaded APK
         results = {
             'successful': [],
@@ -232,7 +284,7 @@ def main():
                     })
                     continue
                 
-                result = patch_apk(apk_path, app_info, revanced_files)
+                result = patch_apk(apk_path, app_info, revanced_files, max_patch_retries)
                 
                 if result['success']:
                     results['successful'].append(result)
